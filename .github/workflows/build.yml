@@ -1,0 +1,106 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - request-token
+
+concurrency:
+  # On master, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  # More info: https://stackoverflow.com/a/68422069/253468
+  group:
+    ${{ (github.ref == 'refs/heads/main') && format('{0}-{1}',
+    github.workflow_ref, github.sha) || format('{0}-{1}', github.workflow_ref,
+    github.head_ref) }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-typescript:
+    name: TypeScript Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        id: npm-ci
+        run: npm ci
+
+      - name: Check Format
+        id: npm-format-check
+        run: npm run format:check
+
+      - name: Lint
+        id: npm-lint
+        run: npm run lint
+
+      - name: Test
+        id: npm-ci-test
+        run: npm run ci-test
+
+  test-action:
+    name: Test permissionizer/request-token
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Set pending status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ github.sha }} \
+            -f state=pending \
+            -f context="permissionizer/request-token" \
+            -f description="Setting pending status for permissionizer/request-token using GITHUB_TOKEN"
+
+      - name: Test Local Action
+        id: request-token
+        uses: ./
+        with:
+          target-repository: permissionizer/request-token
+          permissions: |
+            checks: write
+            statuses: write
+
+      - name: Update status to success using Permissionizer token
+        env:
+          GH_TOKEN: ${{ steps.request-token.outputs.token }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ github.sha }} \
+            -f state=success \
+            -f context="permissionizer/request-token" \
+            -f description="Permissionizer token has necessary permissions"
+
+      - name: Update status to failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ github.sha }} \
+            -f state=failure \
+            -f context="permissionizer/request-token" \
+            -f description="Permissionizer token does not have necessary permissions"

@@ -1,0 +1,51 @@
+name: 'Permissionizer: Request Token'
+description:
+  An action to request a short-lived token from the Permissionizer App, using
+  GitHub's native OIDC flow and explicit repo-to-repo policy.
+author: Artur Havliukovskyi
+
+branding:
+  icon: shield
+  color: orange
+
+inputs:
+  target-repository:
+    description:
+      The target repositories to request the token for. Accepts a
+      comma-separated list, multi-line value or JSON array of repository names
+      in the format owner/repo.
+    required: true
+  permissions:
+    description:
+      The permissions with access level to request for the token, ALL
+      permissions must be allowed by the explicit policy on the target
+      repository. Accepts a comma-separated list, multi-line value or JSON
+      object.
+    required: true
+  permissionizer-server:
+    description:
+      The URL of the Permissionizer server to use. Defaults to the official
+      Permissionizer server - https://permissionizer.app.
+    required: false
+    default: https://permissionizer.app
+
+outputs:
+  token:
+    description:
+      A short-lived token issued by the Permissionizer App after validating the
+      explicit policy on the target repository.
+  issued-by:
+    description: A repository that requested the token.
+  expires-at:
+    description: Time when the token expires.
+  repositories:
+    description:
+      A list of repositories that the token is valid for, all target
+      repositories must define the explicit policy allowing the requested
+      permissions.
+  permissions:
+    description: A list of permissions granted by the issued token.
+
+runs:
+  using: node20
+  main: dist/index.js

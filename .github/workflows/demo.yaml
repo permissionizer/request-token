@@ -1,0 +1,99 @@
+name: Demo
+on:
+  schedule:
+    - cron: 20 07 * * 1
+  push:
+    branches:
+      - request-token
+
+jobs:
+  create-issue:
+    name: Create issue in permissionizer/server
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Request token
+        id: request-token
+        # uses: permissionizer/request-token@v1
+        uses: ./
+        with:
+          target-repository: permissionizer/server
+          # see all available permissions
+          # https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+          permissions: |
+            contents: read
+            issues: write
+
+      - name: Update an issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.request-token.outputs.token }}
+          script: |
+            const title = 'This issue was created by `permissionizer/request-token`';
+            const issuedBy = JSON.parse('${{ steps.request-token.outputs.issued-by }}');
+            const expiresAt = '${{ steps.request-token.outputs.expires-at }}';
+            const repositories = JSON.parse('${{ steps.request-token.outputs.repositories }}');
+            const permissions = JSON.parse('${{ steps.request-token.outputs.permissions }}');
+            const body = `
+            🚀 This issue was created / updated by \`permissionizer/request-token\`, demonstrating how simple and secure cross-repo workflows can be!
+
+            A short-lived token was issued via [Permissionizer](https://github.com/marketplace/permissionizer), a [GitHub OIDC provider](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect). This was enabled by the explicit repo-to-repo policy defined in [.github/permissionizer.yaml](https://github.com/permissionizer/request-token/blob/main/.github/permissionizer.yaml).
+
+            ### Key Benefits
+            - 🔐 **No PATs**: Only short-lived, scoped tokens are used.
+            - ✅ **Secure**: Utilizes GitHub OIDC to verify the identity of the requesting repository.
+            - ✅ **Zero Trust Policy**: Requires explicit policy to allow access.
+            - ✅ **Principle of Least Privilege**: Only the necessary permissions are requested and granted.
+
+            Cross-repo automation no longer needs to rely on outdated PATs with unclear permissions. With \`permissionizer\`, it's policy-driven, secure, and effortless.
+
+            ### Token details
+
+            The token was requested using the \`permissionizer/request-token@v1\` action:
+            \`\`\`yaml
+            issued-by:
+              repository: ${issuedBy.repository}
+              ref: ${issuedBy.ref}
+              workflow_ref: ${issuedBy.workflow_ref}
+              run_id: ${issuedBy.run_id}
+            expires-at: ${expiresAt}
+            repositories:
+            ${repositories.map(repo => `  - ${repo}`).join('\n')}
+            permissions:
+            ${Object.entries(permissions)
+              .map(([key, value]) => `  ${key}: ${value}`)
+              .join('\n')}
+            \`\`\`
+
+            Last updated at: ${new Date().toISOString()}
+            `;
+
+            const issue = await github.rest.issues.get({
+              owner: 'permissionizer',
+              repo: 'server',
+              issue_number: 1
+            }).catch(() => null);
+            if (issue) {
+              await github.rest.issues.update({
+                owner: 'permissionizer',
+                repo: 'server',
+                issue_number: 1,
+                title,
+                body,
+                labels: ['permissionizer']
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: 'permissionizer',
+                repo: 'server',
+                title,
+                body,
+                labels: ['permissionizer']
+              });
+            }
