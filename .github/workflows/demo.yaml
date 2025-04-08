@@ -4,15 +4,16 @@ on:
     - cron: 20 07 * * 1
   push:
     branches:
-      - request-token
+      - main
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   create-issue:
     name: Create issue in permissionizer/server
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - name: Checkout
         id: checkout

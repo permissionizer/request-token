@@ -297,7 +297,7 @@ describe('main.ts', () => {
           detail:
             "The target repository 'owner/repo1' does not allow 'owner/requestor' to access it. Please reach out to the repository owner to allow access",
           properties: {
-            request_id: '305a77c4-bfa2-4b6d-b9bd-ceafd5669251'
+            request_id: '123'
           }
         }
       }
@@ -306,7 +306,7 @@ describe('main.ts', () => {
     await run()
 
     expect(core.setFailed).toHaveBeenCalledWith(
-      "Failed to get token: Status: 403, Error: The target repository 'owner/repo1' does not allow 'owner/requestor' to access it. Please reach out to the repository owner to allow access. Request ID: 305a77c4-bfa2-4b6d-b9bd-ceafd5669251"
+      "Failed to get token: Status: 403, Error: The target repository 'owner/repo1' does not allow 'owner/requestor' to access it. Please reach out to the repository owner to allow access. Request ID: 123"
     )
   })
 })

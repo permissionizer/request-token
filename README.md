@@ -42,7 +42,7 @@ allow:
 ```
 
 After a policy is defined, the requesting repository
-`permissionizer/request-token` can request the token from a Github Actions
+`permissionizer/request-token` can request the token from a GitHub Actions
 workflow. Only permissions allowed in the policy can be requested.
 
 ```yaml
@@ -97,7 +97,7 @@ requests and expect follow-up workflows to run:
 
 - [Git Auto Commit](https://github.com/marketplace/actions/git-auto-commit)
 - [Dependabot Auto Merge](https://github.com/marketplace/actions/dependabot-auto-merge)
-- [GitHub Activity in Readme](https://github.com/marketplace/actions/github-activity-readme)
+- [GitHub Activity in readme](https://github.com/marketplace/actions/github-activity-readme)
 - [Auto Update](https://github.com/marketplace/actions/auto-update)
 - [GitHub Prettier Action](https://github.com/marketplace/actions/prettier-action)
 - [Super-Linter](https://github.com/marketplace/actions/super-linter)
