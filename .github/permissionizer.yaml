@@ -1,0 +1,7 @@
+self: permissionizer/request-token
+allow:
+  - repository: permissionizer/request-token
+    workflow_ref: permissionizer/request-token/.github/workflows/build.yml
+    permissions:
+      checks: write
+      statuses: write

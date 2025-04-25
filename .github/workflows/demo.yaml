@@ -1,10 +1,11 @@
 name: Demo
 on:
   schedule:
-    - cron: 20 07 * * 1
+    - cron: 00 07 * * *
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -72,6 +73,7 @@ jobs:
               .join('\n')}
             \`\`\`
 
+            Workflow run: [${issuedBy.workflow_ref}][https://github.com/permissionizer/request-token/actions/runs/${issuedBy.run_id})
             Last updated at: ${new Date().toISOString()}
             `;
 
