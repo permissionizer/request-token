@@ -16,6 +16,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          MAJOR_VERSION=${GITHUB_REF#refs/tags/%%.*}
+          MAJOR_VERSION="${GITHUB_REF#refs/tags/%%.*}"
           git tag -f $MAJOR_VERSION
           git push origin $MAJOR_VERSION --force
