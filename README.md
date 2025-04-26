@@ -31,9 +31,11 @@ from the repository requesting the token (see
 
 ### Requesting a token to perform actions on a different repository
 
-Before requesting a token, a repository must define a policy that allows access
-from the repository requesting the token. The policy is defined in the
-`.github/permissionizer.yaml` file in the root of your repository, for example:
+Before requesting a token, a repository must install
+[Permissionizer App](https://github.com/apps/permissionizer) and declare a
+policy that allows the access to one or multiple repositories. The policy is
+declared in the `.github/permissionizer.yaml` file in the root of your
+repository, for example:
 
 ```yaml
 self: permissionizer/server
@@ -49,6 +51,8 @@ After a policy is defined, the requesting repository
 workflow. Only permissions allowed in the policy can be requested.
 
 ```yaml
+permissions:
+  id-token: write # required for issuing GitHub OIDC tokens for identity verification
 steps:
   - id: request-token
     uses: permissionizer/request-token@v1
@@ -158,8 +162,11 @@ jobs:
 
 ### Requesting a single token for multiple repositories
 
-When requesting a token for multiple repositories, a policy must be defined
-inside each of the target repositories, allowing all the requested permissions.
+> [!NOTE] This feature is currently under development
+
+When requesting a token for multiple repositories, they must belong to the same
+organization and every repositories must declare a policy allowing all the
+requested permissions.
 
 For example:
 
@@ -221,7 +228,7 @@ allow:
     # Only permissions listed here are allowed to be requested, except 'metadata: read', which is added
     # automatically if any other permission is defined.
     # Requestor can always request less permissions or lower access than allowed
-    # (e.g. `issues: read` even if `contents: write`, `issues: write` are allowed)
+    # (i.e. requesting only `issues: read` when allowed `contents: write`, `issues: write`)
     permissions:
       contents: read
       issues: write
@@ -236,8 +243,8 @@ allow:
 
 following this policy, only the `permissionizer/server` repository can request a
 token with access to the `permissionizer/request-token` repository. This token
-will only have `issues: write` and `metadata: read` (added automatically)
-permissions.
+will only have `contents: read`, `issues: write` and `metadata: read` (added
+automatically) permissions.
 
 To harden the security, the token can only be requested from the `main` branch,
 making sure that the repository cannot be accessed from the unreviewed branches
@@ -269,3 +276,71 @@ allow:
 the requesting repository can request a token with `contents: read` from any
 branch, but can only request a token with `contents: write` from the `main`
 branch.
+
+## Permissionizer
+
+The [**Permissionizer App**](https://github.com/apps/permissionizer) is a GitHub
+App that securely issues short-lived, policy-based tokens as an
+[OIDC provider](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect).
+These tokens enable secure cross-repository automation by allowing workflows to
+perform actions on other repositories, strictly adhering to defined policies.
+
+Unlike
+[actions/create-github-app-token](https://github.com/marketplace/actions/create-github-app-token),
+the Permissionizer App eliminates the need to create and manage custom GitHub
+Apps or share private keys. It can be installed in any repository or
+organization, with token issuance handled by the
+[Permissionizer Server](https://github.com/permissionizer/server), which is
+available at https://permissionizer.app.
+
+Tokens are only issued if explicitly allowed by the target repository's policy,
+ensuring strict access control. The requesting workflow must provide an ID token
+(requires `id-token: write` permission), which is verified by the Permissionizer
+Server. The process is seamlessly managed by the
+`permissionizer/request-token@v1` action.
+
+### Custom Deployment
+
+While the process of issuing tokens is secure and requires explicit policies for
+the token exchange, to maintain full control over token exchange and deployment,
+organizations can create a custom Permissionizer App (public or internal) and
+deploy an instance of the Permissionizer Server. This ensures that no tokens
+ever leave the organization's internal network.
+
+To deploy a custom instance of the Permissionizer Server, follow these steps:
+
+1. **Create a GitHub App**
+
+   Set up a GitHub App with the required permissions and install it into the
+   desired repository or organization. The only required permission is
+   `contents: read`, that ensures the server can read the
+   `.github/permissionizer.yaml` policy file in the target repository, all other
+   permissions are optional and depend on which permissions you might need to
+   request for cross-repository automations.
+
+2. **Configure the Server**
+
+   Add the GitHub App details to the `config/permissionizer-server.yaml` file or
+   use environment variables (refer to `config/.env` for supported variables).
+
+3. **Run the Server**
+
+   Use the official Docker image `ghcr.io/permissionizer/server:latest` to
+   deploy the server. Mount the configuration file or pass the required
+   environment variables.
+
+4. **Integrate with `permissionizer/request-token`**
+
+   When using the `permissionizer/request-token` action, specify the custom
+   server URL in the `permissionizer-server` input:
+
+   ```yaml
+   - id: request-token
+     uses: permissionizer/request-token@v1
+     with:
+       permissionizer-server: https://permissionizer.mycompany.com
+       target-repository: permissionizer/server
+       permissions: |
+         contents: read
+         issues: write
+   ```
