@@ -120,8 +120,7 @@ after making changes.
 To enable this behavior, simply request a token for the **current repository**
 by setting `target-repository: ${{ github.repository }}`.  
 Even in this case, the target repository must define a policy with explicitly
-allowed permissions — ensuring **safe, auditable** access without unintended
-privilege escalation.
+allowed permissions — ensuring **secure** access without unintended privilege escalation.
 
 Policy example:
 
@@ -306,7 +305,7 @@ the Permissionizer App eliminates the need to create and manage custom GitHub
 Apps or share private keys. It can be installed in any repository or
 organization, with token issuance handled by the
 [Permissionizer Server](https://github.com/permissionizer/server), which is
-available for free (with basic rate limiting).
+available for free (with some basic rate limiting).
 
 Tokens are only issued if explicitly allowed by the target repository's policy,
 ensuring strict access control. The requesting workflow must provide an ID token
