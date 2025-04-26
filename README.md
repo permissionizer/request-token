@@ -162,7 +162,8 @@ jobs:
 
 ### Requesting a single token for multiple repositories
 
-> [!NOTE] This feature is currently under development
+> [!WARNING]
+> This feature is currently under development and is not yet available to be used
 
 When requesting a token for multiple repositories, they must belong to the same
 organization and every repositories must declare a policy allowing all the
