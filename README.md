@@ -206,6 +206,20 @@ allow:
       issues: write
 ```
 
+## Live Demo
+
+This repository includes a live [demo workflow](.github/workflows/demo.yaml)
+showcasing how to use the `permissionizer/request-token@v1` action. The workflow
+runs continuously and requests a short-lived token to updates the
+[permissionizer/server#1](https://github.com/permissionizer/server/issues/1)
+issue.
+
+The demo works because the
+[permissionizer/server](https://github.com/permissionizer/server/blob/main/.github/permissionizer.yaml)
+repository defines a policy that explicitly allows
+`permissionizer/request-token` to request a token with `contents: read` and
+`issues: write` permissions.
+
 ## Zero Trust Policy
 
 After installing [Permissionizer App](https://github.com/apps/permissionizer)
