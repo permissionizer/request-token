@@ -22,3 +22,5 @@ MD030:
 # Code block style
 MD046:
   style: fenced
+# Disable no-multiple-blanks due to incorrectly formatting '[!NOTE]' and other alerts
+# MD028: false
