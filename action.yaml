@@ -1,7 +1,7 @@
 name: 'Permissionizer: Request Token'
 description:
-  An action to request a short-lived token from the Permissionizer App, using
-  GitHub's native OIDC flow and explicit repo-to-repo policy.
+  An action to request short-lived, policy-based tokens from the Permissionizer
+  App as a secure alternative to PATs.
 author: Artur Havliukovskyi
 
 branding:
