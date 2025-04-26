@@ -6,16 +6,18 @@
 [![CodeQL](https://github.com/permissionizer/request-token/actions/workflows/codeql-analysis.yaml/badge.svg)](https://github.com/permissionizer/request-token/workflows/codeql-analysis.yaml)
 [![Coverage](./badges/coverage.svg)](https://github.com/permissionizer/request-token/actions/workflows/build.yaml)
 
-This action requests a temporary token from the [Permissionizer App](https://github.com/apps/permissionizer).  
+This action requests a temporary token from the
+[Permissionizer App](https://github.com/apps/permissionizer).  
 The token can be used in places where
 [`GITHUB_TOKEN`](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication)
 or a
 [Personal Access Token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 would normally be used to perform actions on a different repository.
 
-The [Permissionizer App](https://github.com/apps/permissionizer) must be installed in the _target repository_,
-which must define a policy allowing access from the repository requesting the
-token (see [Zero Trust Policy](#zero-trust-policy)).
+The [Permissionizer App](https://github.com/apps/permissionizer) must be
+installed in the _target repository_, which must define a policy allowing access
+from the repository requesting the token (see
+[Zero Trust Policy](#zero-trust-policy)).
 
 ## Inputs
 
@@ -89,9 +91,10 @@ will **not trigger most workflows**, including those with `push` or
 `pull_request` triggers.  
 This is a GitHub restriction designed to prevent infinite automation loops.
 
-However, by requesting a token via the [Permissionizer App](https://github.com/apps/permissionizer), you can
-**bypass this limitation even within the same repository** — securely and with
-explicit policy control.
+However, by requesting a token via the
+[Permissionizer App](https://github.com/apps/permissionizer), you can **bypass
+this limitation even within the same repository** — securely and with explicit
+policy control.
 
 This is especially useful for actions that make automated commits or pull
 requests and expect follow-up workflows to run:
@@ -198,10 +201,10 @@ allow:
 
 ## Zero Trust Policy
 
-After installing [Permissionizer App](https://github.com/apps/permissionizer) into your repository, you need to
-define a policy that allows the access from the repository requesting the token.
-The policy is defined in the `.github/permissionizer.yaml` file in the root of
-your repository.
+After installing [Permissionizer App](https://github.com/apps/permissionizer)
+into your repository, you need to define a policy that allows the access from
+the repository requesting the token. The policy is defined in the
+`.github/permissionizer.yaml` file in the root of your repository.
 
 Here is an example policy that allows access to the
 `permissionizer/request-token` repository:
