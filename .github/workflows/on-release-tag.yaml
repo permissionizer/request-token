@@ -18,5 +18,5 @@ jobs:
         run: |
           MAJOR_VERSION="${GITHUB_REF#"refs/tags/"}"
           MAJOR_VERSION="${MAJOR_VERSION%%.*}"
-          git tag -f $MAJOR_VERSION
-          git push origin $MAJOR_VERSION --force
+          git tag -f "${MAJOR_VERSION}"
+          git push origin "${MAJOR_VERSION}" --force
