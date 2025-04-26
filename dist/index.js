@@ -27251,7 +27251,7 @@ var libExports = requireLib();
 var authExports = requireAuth();
 
 /**
- * The client for permissionizer-server, requests scoped GitHub token using IDToken.
+ * The client for permissionizer server, requests scoped GitHub token using IDToken.
  */
 class Client {
     baseUrl;
