@@ -306,7 +306,7 @@ the Permissionizer App eliminates the need to create and manage custom GitHub
 Apps or share private keys. It can be installed in any repository or
 organization, with token issuance handled by the
 [Permissionizer Server](https://github.com/permissionizer/server), which is
-available at https://permissionizer.app.
+available for free (with basic rate limiting).
 
 Tokens are only issued if explicitly allowed by the target repository's policy,
 ensuring strict access control. The requesting workflow must provide an ID token
