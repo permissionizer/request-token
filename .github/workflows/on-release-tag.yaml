@@ -12,6 +12,8 @@ jobs:
     name: Update major version
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Create Major Version Tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
