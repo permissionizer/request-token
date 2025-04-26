@@ -1,9 +1,9 @@
 # Permissionizer / Request Token action
 
-[![GitHub Super-Linter](https://github.com/permissionizer/request-token/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
-![CI](https://github.com/permissionizer/request-token/workflows/ci.yml/badge.svg)
-[![Check dist/](https://github.com/permissionizer/request-token/workflows/check-dist.yml/badge.svg)](https://github.com/permissionizer/request-token/workflows/check-dist.yml)
-[![CodeQL](https://github.com/permissionizer/request-token/workflows/codeql-analysis.yml/badge.svg)](https://github.com/permissionizer/request-token/workflows/codeql-analysis.yml)
+[![GitHub Super-Linter](https://github.com/permissionizer/request-token/actions/workflows/linter.yaml/badge.svg)](https://github.com/super-linter/super-linter)
+![Build](https://github.com/permissionizer/request-token/actions/workflows/build.yaml/badge.svg)
+[![Check dist/](https://github.com/permissionizer/request-token/actions/workflows/check-dist.yaml/badge.svg)](https://github.com/permissionizer/request-token/workflows/check-dist.yaml)
+[![CodeQL](https://github.com/permissionizer/request-token/actions/workflows/codeql-analysis.yaml/badge.svg)](https://github.com/permissionizer/request-token/workflows/codeql-analysis.yaml)
 
 This action requests a temporary token from the [Permissionizer App](TODO).  
 The token can be used in places where
@@ -199,7 +199,7 @@ allow:
 
 After installing [Permissionizer App](TODO) into your repository, you need to
 define a policy that allows the access from the repository requesting the token.
-The policy is defined in the `.github/permissionizer.yml` file in the root of
+The policy is defined in the `.github/permissionizer.yaml` file in the root of
 your repository.
 
 Here is an example policy that allows access to the
@@ -243,7 +243,7 @@ other workflow.
 
 ### Access policy evaluation
 
-Multiple policies can be defined in the `.github/permissionizer.yml` file,
+Multiple policies can be defined in the `.github/permissionizer.yaml` file,
 including multiple policies for the same repository. The policies are evaluated
 in the order they are defined, returning the token with permissions of the first
 allowed policy.

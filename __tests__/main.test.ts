@@ -47,7 +47,7 @@ describe('main.ts', () => {
           issued_by: {
             repository: 'owner/repo1',
             ref: 'refs/heads/main',
-            workflow_ref: '.github/workflows/ci.yml@refs/heads/main',
+            workflow_ref: 'owner/repo1/.github/workflows/ci.yaml@refs/heads/main',
             run_id: 123456789
           }
         }
@@ -82,7 +82,7 @@ describe('main.ts', () => {
     expect(core.setOutput).toHaveBeenCalledWith('issued-by', {
       repository: 'owner/repo1',
       ref: 'refs/heads/main',
-      workflow_ref: '.github/workflows/ci.yml@refs/heads/main',
+      workflow_ref: 'owner/repo1/.github/workflows/ci.yaml@refs/heads/main',
       run_id: 123456789
     })
     expect(core.setOutput).toHaveBeenCalledWith('expires-at', expect.anything())
