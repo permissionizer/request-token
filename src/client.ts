@@ -9,7 +9,7 @@ import * as ifm from '@actions/http-client/lib/interfaces.js'
 import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 
 /**
- * The client for permissionizer-server, requests scoped GitHub token using IDToken.
+ * The client for permissionizer server, requests scoped GitHub token using IDToken.
  */
 export class Client {
   private readonly baseUrl: string

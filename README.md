@@ -25,7 +25,7 @@ from the repository requesting the token (see
 | ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `target-repository`     | required | The repository (or repositories) for which the token is to be requested, in the format `owner/repo`. Multiple values can be provided, separated by commas or newlines.                                                                                                                         |
 | `permissions`           | required | The permissions that should be assigned to the token when it is issued. For available scopes and details, refer to the [GitHub documentation](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token). |
-| `permissionizer-server` | optional | URL of [permissionizer-server](https://github.com/permissionizer/permissionizer-server) for self-hosted deployments. Default: `https://permissionizer.app` (free cloud version, subject to the rate limit of 10 tokens per minute)                                                             |
+| `permissionizer-server` | optional | URL of [server](https://github.com/permissionizer/server) for self-hosted deployments. Default: `https://permissionizer.app` (free cloud version, subject to the rate limit of 10 tokens per minute)                                                                                           |
 
 ## Usage
 
@@ -36,7 +36,7 @@ from the repository requesting the token. The policy is defined in the
 `.github/permissionizer.yaml` file in the root of your repository, for example:
 
 ```yaml
-self: permissionizer/permissionizer-server
+self: permissionizer/server
 allow:
   - repository: permissionizer/request-token
     permissions:
@@ -53,7 +53,7 @@ steps:
   - id: request-token
     uses: permissionizer/request-token@v1
     with:
-      target-repository: permissionizer/permissionizer-server
+      target-repository: permissionizer/server
       # see all available permissions
       # https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
       permissions: |
@@ -61,23 +61,23 @@ steps:
         issues: write
 ```
 
-with this token, the workflow can now clone the
-`permissionizer/permissionizer-server` repository and create an issue in it.
+with this token, the workflow can now clone the `permissionizer/server`
+repository and create an issue in it.
 
 ```yaml
 - uses: actions/checkout@v4
   with:
-    repository: permissionizer/permissionizer-server
+    repository: permissionizer/server
     token: ${{ steps.request-token.outputs.token }}
 
-- name: Create new issue in permissionizer-server
+- name: Create new issue in permissionizer/server
   uses: actions/github-script@v7
   with:
     github-token: ${{ steps.request-token.outputs.token }}
     script: |
       await github.rest.issues.create({
           owner: 'permissionizer',
-          repo: 'permissionizer-server',
+          repo: 'server',
           title: 'Cross-repository automation with permissionizer/request-token',
           body: `🚀 This issue was created by `permissionizer/request-token` — showing just how simple secure cross-repo workflows can be!`
         });
@@ -169,21 +169,21 @@ steps:
     uses: permissionizer/request-token@v1
     with:
       target-repository: |
-        permissionizer/permissionizer-server
+        permissionizer/server
         permissionizer/request-token
       permissions: |
         contents: read
         issues: write
 ```
 
-requires the following policy in both `permissionizer/permissionizer-server` and
+requires the following policy in both `permissionizer/server` and
 `permissionizer/request-token`:
 
 ```yaml
-# .github/permissionizer.yaml in permissionizer/permissionizer-server
-self: permissionizer/permissionizer-server
+# .github/permissionizer.yaml in permissionizer/server
+self: permissionizer/server
 allow:
-  - repository: permissionizer/permissionizer-server
+  - repository: permissionizer/server
     permissions:
       contents: read
       issues: write
@@ -193,7 +193,7 @@ allow:
 # .github/permissionizer.yaml in permissionizer/request-token
 self: permissionizer/request-token
 allow:
-  - repository: permissionizer/permissionizer-server
+  - repository: permissionizer/server
     permissions:
       contents: read
       issues: write
@@ -215,9 +215,9 @@ self: permissionizer/request-token
 allow:
   # (required)
   # Repository requesting the token
-  - repository: permissionizer/permissionizer-server
+  - repository: permissionizer/server
     # (required)
-    # Permissions that can be requested by 'permissionizer/permissionizer-server'
+    # Permissions that can be requested by 'permissionizer/server'
     # Only permissions listed here are allowed to be requested, except 'metadata: read', which is added
     # automatically if any other permission is defined.
     # Requestor can always request less permissions or lower access than allowed
@@ -234,10 +234,10 @@ allow:
     workflow_ref: .github/workflows/release.yaml
 ```
 
-following this policy, only the `permissionizer/permissionizer-server`
-repository can request a token with access to the `permissionizer/request-token`
-repository. This token will only have `issues: write` and `metadata: read`
-(added automatically) permissions.
+following this policy, only the `permissionizer/server` repository can request a
+token with access to the `permissionizer/request-token` repository. This token
+will only have `issues: write` and `metadata: read` (added automatically)
+permissions.
 
 To harden the security, the token can only be requested from the `main` branch,
 making sure that the repository cannot be accessed from the unreviewed branches
@@ -257,10 +257,10 @@ For example:
 ```yaml
 self: permissionizer/request-token
 allow:
-  - repository: permissionizer/permissionizer-server
+  - repository: permissionizer/server
     permissions:
       contents: read
-  - repository: permissionizer/permissionizer-server
+  - repository: permissionizer/server
     permissions:
       contents: write
     ref: refs/heads/main
