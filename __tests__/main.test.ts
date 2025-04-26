@@ -47,7 +47,8 @@ describe('main.ts', () => {
           issued_by: {
             repository: 'owner/repo1',
             ref: 'refs/heads/main',
-            workflow_ref: 'owner/repo1/.github/workflows/ci.yaml@refs/heads/main',
+            workflow_ref:
+              'owner/repo1/.github/workflows/ci.yaml@refs/heads/main',
             run_id: 123456789
           }
         }
