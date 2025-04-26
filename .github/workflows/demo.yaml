@@ -45,7 +45,7 @@ jobs:
             const body = `
             🚀 This issue was created / updated by \`permissionizer/request-token\`, demonstrating how simple and secure cross-repo workflows can be!
 
-            A short-lived token was issued via [Permissionizer](https://github.com/marketplace/permissionizer), a [GitHub OIDC provider](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect). This was enabled by the explicit repo-to-repo policy defined in [.github/permissionizer.yaml](https://github.com/permissionizer/request-token/blob/main/.github/permissionizer.yaml).
+            A short-lived token was issued via [Permissionizer](https://github.com/marketplace/permissionizer), a [GitHub OIDC provider](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect). This was enabled by the explicit repo-to-repo policy defined in [.github/permissionizer.yaml](https://github.com/permissionizer/server/blob/main/.github/permissionizer.yaml).
 
             ### Key Benefits
             - 🔐 **No PATs**: Only short-lived, scoped tokens are used.
@@ -73,7 +73,7 @@ jobs:
               .join('\n')}
             \`\`\`
 
-            Workflow run: [${issuedBy.workflow_ref}][https://github.com/permissionizer/request-token/actions/runs/${issuedBy.run_id})
+            Workflow run: [${issuedBy.workflow_ref}#${issuedBy.run_id}](https://github.com/permissionizer/request-token/actions/runs/${issuedBy.run_id})
             Last updated at: ${new Date().toISOString()}
             `;
 

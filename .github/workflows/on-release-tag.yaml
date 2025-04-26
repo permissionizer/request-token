@@ -1,0 +1,18 @@
+name: Tag & Release Workflow
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update-major-version:
+    name: Update major version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Major Version Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MAJOR_VERSION=${GITHUB_REF#refs/tags/%%.*}
+          git tag -f $MAJOR_VERSION
+          git push origin $MAJOR_VERSION --force
