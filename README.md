@@ -161,9 +161,6 @@ jobs:
 
 ### Requesting a single token for multiple repositories
 
-> [!WARNING]
-> This feature is currently under development and is not yet available to be used
-
 When requesting a token for multiple repositories, they must belong to the same
 organization and every repositories must declare a policy allowing all the
 requested permissions.
@@ -236,6 +233,7 @@ self: permissionizer/request-token
 allow:
   # (required)
   # Repository requesting the token
+  # Supports wildcards, e.g. `permissionizer/*` to allow all repositories in the `permissionizer` organization
   - repository: permissionizer/server
     # (required)
     # Permissions that can be requested by 'permissionizer/server'
