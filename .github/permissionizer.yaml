@@ -5,9 +5,6 @@ allow:
     permissions:
       checks: write
       statuses: write
-  - repository: permissionizer/request-token
-    permissions:
-      contents: read
-  - repository: permissionizer/server
+  - repository: permissionizer/*
     permissions:
       contents: read
