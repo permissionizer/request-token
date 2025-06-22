@@ -246,10 +246,13 @@ allow:
       issues: write
     # (optional)
     # Restricts requesting token to specific branches of the requesting repository
-    # Uses GitHub format of `ref` (e.g. `refs/heads/main`, `refs/tags/v1.0.0`, `refs/tags/v*`)
+    # Uses GitHub format of `ref` (e.g. `refs/heads/main`, `refs/tags/v1.0.0`, `refs/tags/v*`) 
+    # or short branch or tag name (e.g. `main`, `v1.0.0`, `v*`)
     ref: refs/heads/main
     # (optional)
     # Restricts requesting token only from a specific workflow of the requesting repository
+    # Uses GitHub format of `workflow_ref` (e.g. `.github/workflows/release.yaml`)
+    # allows specifying a repository and a branch (e.g. `permissionizer/server/.github/workflows/reusable-workflow.yaml@refs/heads/main`)
     workflow_ref: .github/workflows/release.yaml
 ```
 
