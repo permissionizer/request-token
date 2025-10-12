@@ -2,7 +2,7 @@
 
 [![GitHub Super-Linter](https://github.com/permissionizer/request-token/actions/workflows/linter.yaml/badge.svg)](https://github.com/super-linter/super-linter)
 [![Build](https://github.com/permissionizer/request-token/actions/workflows/build.yaml/badge.svg)](https://github.com/permissionizer/request-token/actions/workflows/build.yaml)
-[![Check dist/](https://github.com/permissionizer/request-token/actions/workflows/check-dist.yaml/badge.svg)](https://github.com/permissionizer/request-token/workflows/check-dist.yaml)
+[![Check dist](https://github.com/permissionizer/request-token/actions/workflows/check-dist.yaml/badge.svg)](https://github.com/permissionizer/request-token/workflows/check-dist.yaml)
 [![CodeQL](https://github.com/permissionizer/request-token/actions/workflows/codeql-analysis.yaml/badge.svg)](https://github.com/permissionizer/request-token/workflows/codeql-analysis.yaml)
 [![Coverage](./badges/coverage.svg)](https://github.com/permissionizer/request-token/actions/workflows/build.yaml)
 
