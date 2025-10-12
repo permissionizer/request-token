@@ -22,8 +22,7 @@ jobs:
 
       - name: Request token
         id: request-token
-        # uses: permissionizer/request-token@v1
-        uses: ./
+        uses: permissionizer/request-token@v1
         with:
           target-repository: permissionizer/server
           # see all available permissions
