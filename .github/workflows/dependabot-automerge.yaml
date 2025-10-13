@@ -13,5 +13,7 @@ jobs:
       github.repository == 'permissionizer/request-token'
     steps:
       - name: Enable auto-merge for Dependabot PRs
-        run:
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           gh pr merge --auto --merge "${{ github.event.pull_request.html_url }}"
