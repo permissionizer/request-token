@@ -6,7 +6,7 @@ import typescript from '@rollup/plugin-typescript'
 
 export default [
   {
-    input: 'src/index.ts',
+    input: 'src/main.ts',
     output: {
       esModule: true,
       file: 'dist/main.js',
