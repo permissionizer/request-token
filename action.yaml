@@ -22,6 +22,12 @@ inputs:
       repository. Accepts a comma-separated list, multi-line value or JSON
       object.
     required: true
+  revoke-token:
+    description:
+      Whether to revoke the token after the job completes. Defaults to `true`.
+      This ensures that the token is short-lived and cannot be misused later.
+    required: false
+    default: 'true'
   permissionizer-server:
     description:
       The URL of the Permissionizer server to use. Defaults to the official
@@ -47,5 +53,6 @@ outputs:
     description: A list of permissions granted by the issued token.
 
 runs:
-  using: node20
-  main: dist/index.js
+  using: node24
+  main: dist/main.js
+  post: dist/post.js

@@ -22,9 +22,10 @@ from the repository requesting the token (see
 ## Inputs
 
 | Name                    | Required | Description                                                                                                                                                                                                                                                                                    |
-| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `target-repository`     | required | The repository (or repositories) for which the token is to be requested, in the format `owner/repo`. Multiple values can be provided, separated by commas or newlines.                                                                                                                         |
-| `permissions`           | required | The permissions that should be assigned to the token when it is issued. For available scopes and details, refer to the [GitHub documentation](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token). |
+| `permissions`           | required | The permissions that should be assigned to the token when it is issued. For available scopes and details, refer to the [GitHub documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#repository-permissions). |
+| `revoke-token`          | optional | Whether to revoke a token after the workflow is completed. Default: `true`                                                                                                                                                                                                                     |
 | `permissionizer-server` | optional | URL of [server](https://github.com/permissionizer/server) for self-hosted deployments. Default: `https://permissionizer.app` (free cloud version, subject to the rate limit of 10 tokens per minute)                                                                                           |
 
 ## Usage
@@ -59,7 +60,7 @@ steps:
     with:
       target-repository: permissionizer/server
       # see all available permissions
-      # https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+      # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#repository-permissions
       permissions: |
         contents: read
         issues: write
@@ -212,7 +213,7 @@ runs continuously and requests a short-lived token to updates the
 issue.
 
 The demo works because the
-[permissionizer/server](https://github.com/permissionizer/server/blob/main/.github/permissionizer.yaml)
+[permissionizer/server](https://github.com/permissionizer/server/blob/common/.github/permissionizer.yaml)
 repository defines a policy that explicitly allows
 `permissionizer/request-token` to request a token with `contents: read` and
 `issues: write` permissions.
@@ -246,13 +247,13 @@ allow:
       issues: write
     # (optional)
     # Restricts requesting token to specific branches of the requesting repository
-    # Uses GitHub format of `ref` (e.g. `refs/heads/main`, `refs/tags/v1.0.0`, `refs/tags/v*`) 
-    # or short branch or tag name (e.g. `main`, `v1.0.0`, `v*`)
-    ref: refs/heads/main
+    # Uses GitHub format of `ref` (e.g. `refs/heads/common`, `refs/tags/v1.0.0`, `refs/tags/v*`) 
+    # or short branch or tag name (e.g. `common`, `v1.0.0`, `v*`)
+    ref: refs/heads/common
     # (optional)
     # Restricts requesting token only from a specific workflow of the requesting repository
     # Uses GitHub format of `workflow_ref` (e.g. `.github/workflows/release.yaml`)
-    # allows specifying a repository and a branch (e.g. `permissionizer/server/.github/workflows/reusable-workflow.yaml@refs/heads/main`)
+    # allows specifying a repository and a branch (e.g. `permissionizer/server/.github/workflows/reusable-workflow.yaml@refs/heads/common`)
     workflow_ref: .github/workflows/release.yaml
 ```
 
@@ -261,7 +262,7 @@ token with access to the `permissionizer/request-token` repository. This token
 will only have `contents: read`, `issues: write` and `metadata: read` (added
 automatically) permissions.
 
-To harden the security, the token can only be requested from the `main` branch,
+To harden the security, the token can only be requested from the `common` branch,
 making sure that the repository cannot be accessed from the unreviewed branches
 or Pull Requests. Additionally, the token can only be requested from the
 `release.yaml` workflow, making sure that the token cannot be requested from any
@@ -285,11 +286,11 @@ allow:
   - repository: permissionizer/server
     permissions:
       contents: write
-    ref: refs/heads/main
+    ref: refs/heads/common
 ```
 
 the requesting repository can request a token with `contents: read` from any
-branch, but can only request a token with `contents: write` from the `main`
+branch, but can only request a token with `contents: write` from the `common`
 branch.
 
 ## Permissionizer

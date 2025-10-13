@@ -4,19 +4,33 @@ import commonjs from '@rollup/plugin-commonjs'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
 
-const config = {
-  input: 'src/index.ts',
-  output: {
-    esModule: true,
-    file: 'dist/index.js',
-    format: 'es',
-    sourcemap: true
+export default [
+  {
+    input: 'src/index.ts',
+    output: {
+      esModule: true,
+      file: 'dist/main.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      typescript(),
+      nodeResolve({ preferBuiltins: true, extensions: ['.js', '.ts'] }),
+      commonjs()
+    ]
   },
-  plugins: [
-    typescript(),
-    nodeResolve({ preferBuiltins: true, extensions: ['.js', '.ts'] }),
-    commonjs()
-  ]
-}
-
-export default config
+  {
+    input: 'src/post.ts',
+    output: {
+      esModule: true,
+      file: 'dist/post.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      typescript(),
+      nodeResolve({ preferBuiltins: true, extensions: ['.js', '.ts'] }),
+      commonjs()
+    ]
+  }
+]

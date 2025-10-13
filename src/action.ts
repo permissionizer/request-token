@@ -1,16 +1,15 @@
 import * as core from '@actions/core'
+import * as github from '@actions/github'
 import { Client } from './client'
 
 const PERMISSIONIZER_SERVER = 'https://permissionizer.app'
 
 /**
  * The main function for the action.
- *
- * @returns Resolves when the action is complete.
  */
-export async function run(): Promise<void> {
+export async function main(): Promise<void> {
   try {
-    return await main()
+    return await issueToken()
   } catch (e) {
     // Fail the workflow run if an error occurs
     if (e instanceof Error) {
@@ -19,7 +18,22 @@ export async function run(): Promise<void> {
   }
 }
 
-const main = async () => {
+/**
+ * The post function for the action.
+ */
+export async function post(): Promise<void> {
+  try {
+    return await revokeToken()
+  } catch (e) {
+    // if it fails, there's not much we can do
+    // the token will expire in 1 hour if not revoked
+    if (e instanceof Error) {
+      core.warning(`Error while revoking token: ${e.message}`)
+    }
+  }
+}
+
+const issueToken = async () => {
   if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL) {
     throw new Error(
       `Environment variable 'ACTIONS_ID_TOKEN_REQUEST_URL' is not set. Make sure that the action is running with 'id-token: write' permission.`
@@ -44,6 +58,13 @@ const main = async () => {
       "'permissions' must be set and contain at least a single permission"
     )
   }
+  const revokeToken = toBoolean(
+    core.getInput('revoke-token', {
+      required: false,
+      trimWhitespace: true
+    }) || 'true'
+  )
+
   const permissionizerServer =
     core.getInput('permissionizer-server', {
       required: false,
@@ -74,6 +95,10 @@ const main = async () => {
   core.setOutput('expires-at', response.expires_at)
   core.setOutput('repositories', response.repositories)
   core.setOutput('permissions', response.permissions)
+
+  if (revokeToken) {
+    core.saveState('token', response.token)
+  }
 
   core.info(
     `Token was successfully requested and was set as an output 'token'. Expires at: ${response.expires_at}`
@@ -212,4 +237,17 @@ const validateAccess = (
     )
   }
   return access
+}
+
+const toBoolean = (input: string): boolean => {
+  return input.toLowerCase() === 'true'
+}
+
+const revokeToken = async () => {
+  const token = core.getState('token')
+  if (token) {
+    core.info('Revoking token')
+    const octokit = github.getOctokit(token)
+    await octokit.rest.apps.revokeInstallationAccessToken()
+  }
 }

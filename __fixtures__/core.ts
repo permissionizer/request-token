@@ -10,5 +10,7 @@ export const getInput = jest.fn<typeof core.getInput>()
 export const setOutput = jest.fn<typeof core.setOutput>()
 export const setSecret = jest.fn<typeof core.setSecret>()
 export const setFailed = jest.fn<typeof core.setFailed>()
+export const saveState = jest.fn<typeof core.saveState>()
+export const getState = jest.fn<typeof core.getState>()
 
 export const getIDToken = jest.fn<typeof core.getIDToken>()

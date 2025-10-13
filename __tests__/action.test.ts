@@ -1,17 +1,22 @@
 import { jest } from '@jest/globals'
 import * as core from '../__fixtures__/core.js'
+import * as github from '../__fixtures__/github.js'
 import * as HttpClient from '../__fixtures__/http-client.js'
 
 jest.unstable_mockModule('@actions/core', () => core)
+jest.unstable_mockModule('@actions/github', () => github)
 jest.unstable_mockModule('@actions/http-client', () => HttpClient)
 
 const inputs = {
   'target-repository': jest.fn<string>(),
   permissions: jest.fn<string>(),
-  'permissionizer-server': jest.fn<string>()
+  'permissionizer-server': jest.fn<string>(),
+  'revoke-token': jest.fn<string>()
 }
 
-const { run } = await import('../src/main.js')
+const revokeInstallationAccessToken = jest.fn()
+
+const { main, post } = await import('../src/action.js')
 
 describe('main.ts', () => {
   beforeEach(() => {
@@ -21,7 +26,10 @@ describe('main.ts', () => {
     inputs['permissions'].mockImplementation(
       () => 'contents: read, issues: write'
     )
-    inputs['permissionizer-server'].mockImplementation(() => '')
+    inputs['permissionizer-server'].mockImplementation(
+      () => 'https://permissionizer.app'
+    )
+    inputs['revoke-token'].mockImplementation(() => 'true')
 
     core.getIDToken.mockImplementation(() => 'test-id-token')
 
@@ -31,6 +39,10 @@ describe('main.ts', () => {
       }
       return null
     })
+
+    const state = {}
+    core.saveState.mockImplementation((key, value) => (state[key] = value))
+    core.getState.mockImplementation((key) => state[key])
 
     HttpClient.postJson.mockImplementation(() => {
       return {
@@ -56,6 +68,16 @@ describe('main.ts', () => {
     })
 
     process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://github.com'
+
+    github.getOctokit.mockImplementation(() => {
+      return {
+        rest: {
+          apps: {
+            revokeInstallationAccessToken
+          }
+        }
+      }
+    })
   })
 
   afterEach(() => {
@@ -63,7 +85,7 @@ describe('main.ts', () => {
   })
 
   it('Issues a token', async () => {
-    await run()
+    await main()
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
@@ -96,12 +118,13 @@ describe('main.ts', () => {
       contents: 'read',
       issues: 'write'
     })
+    expect(core.saveState).toHaveBeenCalledWith('token', 'test-token')
   })
 
   it('Fails if ACTIONS_ID_TOKEN_REQUEST_URL is not set', async () => {
     delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       "Environment variable 'ACTIONS_ID_TOKEN_REQUEST_URL' is not set. Make sure that the action is running with 'id-token: write' permission."
@@ -116,7 +139,7 @@ describe('main.ts', () => {
     `
     )
 
-    await run()
+    await main()
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
@@ -134,7 +157,7 @@ describe('main.ts', () => {
       () => '["owner/repo1","owner/repo2"]'
     )
 
-    await run()
+    await main()
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
@@ -147,10 +170,26 @@ describe('main.ts', () => {
     })
   })
 
+  it('Accepts target-repository in JSON string', async () => {
+    inputs['target-repository'].mockImplementation(() => '"owner/repo1"')
+
+    await main()
+
+    expect(core.setFailed).not.toHaveBeenCalled()
+
+    expect(HttpClient.postJson).toHaveBeenCalledWith(expect.anything(), {
+      target_repositories: ['owner/repo1'],
+      permissions: {
+        contents: 'read',
+        issues: 'write'
+      }
+    })
+  })
+
   it('Fails if target-repository is empty', async () => {
     inputs['target-repository'].mockImplementationOnce(() => '')
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       "'target-repository' must be set and contain at least one repository"
@@ -162,10 +201,22 @@ describe('main.ts', () => {
       () => '{"repository": "owner/repo1"}'
     )
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       'Input is a JSON, but is not supported: requires array of strings or string'
+    )
+  })
+
+  it('Fails if target-repository is invalid format', async () => {
+    inputs['target-repository'].mockImplementationOnce(
+      () => 'repository-without-org'
+    )
+
+    await main()
+
+    expect(core.setFailed).toHaveBeenCalledWith(
+      "Invalid repository format: repository-without-org. Must be in the format 'owner/repo'."
     )
   })
 
@@ -178,7 +229,7 @@ describe('main.ts', () => {
         pull-requests=read
     `
     )
-    await run()
+    await main()
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
@@ -204,7 +255,7 @@ describe('main.ts', () => {
       }
     `
     )
-    await run()
+    await main()
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
@@ -222,7 +273,7 @@ describe('main.ts', () => {
   it('Fails if permissions is empty', async () => {
     inputs['permissions'].mockImplementationOnce(() => '')
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       "'permissions' must be set and contain at least a single permission"
@@ -236,7 +287,7 @@ describe('main.ts', () => {
     `
     )
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       'Input is a JSON, but is not supported: requires an object with permission to access'
@@ -250,10 +301,24 @@ describe('main.ts', () => {
     `
     )
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       "Invalid access for actions: [object Object]. Must be one of 'read', 'write'."
+    )
+  })
+
+  it('Fails if permissions are invalid', async () => {
+    inputs['permissions'].mockImplementation(
+      () => `
+      {"actions": "hello"}
+    `
+    )
+
+    await main()
+
+    expect(core.setFailed).toHaveBeenCalledWith(
+      "Invalid access for actions: hello. Must be one of 'read', 'write'."
     )
   })
 
@@ -262,7 +327,7 @@ describe('main.ts', () => {
       () => 'tcp://invalid-url'
     )
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       "Invalid permissionizer-server URL: tcp://invalid-url. Must start with 'http' or 'https'."
@@ -270,7 +335,7 @@ describe('main.ts', () => {
   })
 
   it('Uses default permissionizer-server URL if empty', async () => {
-    await run()
+    await main()
 
     expect(HttpClient.postJson).toHaveBeenCalledWith(
       'https://permissionizer.app/v1/token',
@@ -282,7 +347,7 @@ describe('main.ts', () => {
     inputs['permissionizer-server'].mockImplementation(
       () => 'https://custom-permissionizer.com'
     )
-    await run()
+    await main()
 
     expect(HttpClient.postJson).toHaveBeenCalledWith(
       'https://custom-permissionizer.com/v1/token',
@@ -304,10 +369,43 @@ describe('main.ts', () => {
       }
     })
 
-    await run()
+    await main()
 
     expect(core.setFailed).toHaveBeenCalledWith(
       "Failed to get token: Status: 403, Error: The target repository 'owner/repo1' does not allow 'owner/requestor' to access it. Please reach out to the repository owner to allow access. Request ID: 123"
+    )
+  })
+
+  it('Revokes token in post', async () => {
+    await main()
+    await post()
+
+    expect(github.getOctokit).toHaveBeenCalledWith('test-token')
+    expect(revokeInstallationAccessToken).toHaveBeenCalled()
+  })
+
+  it('Does not save state if token does not need to be revoked', async () => {
+    inputs['revoke-token'].mockImplementation(() => 'false')
+
+    await main()
+    await post()
+
+    expect(core.setOutput).toHaveBeenCalledWith('token', 'test-token')
+    expect(core.saveState).not.toHaveBeenCalled()
+    expect(github.getOctokit).not.toHaveBeenCalled()
+    expect(revokeInstallationAccessToken).not.toHaveBeenCalled()
+  })
+
+  it('Propagates error from token revocation', async () => {
+    revokeInstallationAccessToken.mockImplementation(() => {
+      throw new Error("Can't revoke token")
+    })
+
+    await main()
+    await post()
+
+    expect(core.warning).toHaveBeenCalledWith(
+      "Error while revoking token: Can't revoke token"
     )
   })
 })
