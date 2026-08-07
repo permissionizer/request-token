@@ -24,7 +24,7 @@ from the repository requesting the token (see
 | Name                    | Required | Description                                                                                                                                                                                                                                                                                    |
 |-------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `target-repository`     | required | The repository (or repositories) for which the token is to be requested, in the format `owner/repo`. Multiple values can be provided, separated by commas or newlines.                                                                                                                         |
-| `permissions`           | required | The permissions that should be assigned to the token when it is issued. For available scopes and details, refer to the [GitHub documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#repository-permissions). |
+| `permissions`           | required | The permissions that should be assigned to the token when it is issued. For available scopes and details, refer to the [GitHub documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#repository-permissions).     |
 | `revoke-token`          | optional | Whether to revoke a token after the workflow is completed. Default: `true`                                                                                                                                                                                                                     |
 | `permissionizer-server` | optional | URL of [server](https://github.com/permissionizer/server) for self-hosted deployments. Default: `https://permissionizer.app` (free cloud version, subject to the rate limit of 10 tokens per minute)                                                                                           |
 
@@ -240,7 +240,7 @@ allow:
     # Permissions that can be requested by 'permissionizer/server'
     # Only permissions listed here are allowed to be requested, except 'metadata: read', which is added
     # automatically if any other permission is defined.
-    # Requestor can always request less permissions or lower access than allowed
+    # Requester can always request fewer permissions or lower access than allowed
     # (i.e. requesting only `issues: read` when allowed `contents: write`, `issues: write`)
     permissions:
       contents: read

@@ -1,21 +1,39 @@
-name: Dependabot auto-merge
+name: Dependabot automerge
+
 on:
-  pull_request:
-    types: [opened, synchronize]
+  push:
+    branches: ['dependabot/**']
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  dependabot:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
-    if:
-      github.event.pull_request.user.login == 'dependabot[bot]' &&
-      github.repository == 'permissionizer/request-token'
     steps:
-      - name: Enable auto-merge for Dependabot PRs
+      - name: Enable auto-merge
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          gh pr merge --auto --merge ${{ github.event.pull_request.number }}
+          set -euo pipefail
+
+          pr_url=''
+          for _ in {1..6}; do
+            pr_url=$(gh pr list --head "${GITHUB_REF_NAME}" --state open --json url --jq '.[0].url // empty')
+            if [[ -n "${pr_url}" ]]; then
+              break
+            fi
+            sleep 5
+          done
+
+          if [[ -z "${pr_url}" ]]; then
+            echo "::notice::No open PR found for ${GITHUB_REF_NAME}"
+            exit 0
+          fi
+
+          gh pr merge --auto --merge "${pr_url}" \
+            && echo "Auto-merge enabled for ${pr_url}" \
+            || echo '::notice::Could not enable auto-merge'
