@@ -20,7 +20,7 @@
     ".": "./dist/index.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "bundle": "npm run format:write && npm run package",
@@ -37,36 +37,35 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/http-client": "^2.2.3"
+    "@actions/core": "^3.0.1"
   },
   "devDependencies": {
-    "@eslint/compat": "^1.4.0",
-    "@github/local-action": "^6.0.0",
-    "@jest/globals": "^30.2.0",
-    "@rollup/plugin-commonjs": "^28.0.6",
+    "@eslint/eslintrc": "^3.3.6",
+    "@eslint/js": "^10.0.1",
+    "@github/local-action": "^7.0.1",
+    "@jest/globals": "^30.4.1",
+    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-typescript": "^12.1.4",
+    "@rollup/plugin-terser": "^1.0.0",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^20.19.21",
-    "@typescript-eslint/eslint-plugin": "^8.46.0",
-    "@typescript-eslint/parser": "^8.32.1",
-    "eslint": "^9.37.0",
+    "@types/node": "^24.13.3",
+    "@typescript-eslint/eslint-plugin": "^8.66.0",
+    "@typescript-eslint/parser": "^8.66.0",
+    "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-jest": "^29.0.1",
-    "eslint-plugin-prettier": "^5.5.3",
-    "jest": "^30.2.0",
+    "eslint-plugin-jest": "^29.16.0",
+    "eslint-plugin-prettier": "^5.5.6",
+    "globals": "^17.9.0",
+    "jest": "^30.4.2",
     "make-coverage-badge": "^1.2.0",
-    "prettier": "^3.6.2",
-    "prettier-eslint": "^16.4.2",
-    "rollup": "^4.52.4",
-    "ts-jest": "^29.4.5",
+    "prettier": "^3.9.6",
+    "rollup": "^4.62.4",
+    "ts-jest": "^29.4.12",
     "ts-jest-resolver": "^2.0.1",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.52.4"
+    "@rollup/rollup-linux-x64-gnu": "^4.62.4"
   }
 }

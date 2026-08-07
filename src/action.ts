@@ -1,5 +1,14 @@
-import * as core from '@actions/core'
-import * as github from '@actions/github'
+import {
+  getIDToken,
+  getInput,
+  getState,
+  info,
+  saveState,
+  setFailed,
+  setOutput,
+  setSecret,
+  warning
+} from '@actions/core'
 import { Client } from './client'
 
 const PERMISSIONIZER_SERVER = 'https://permissionizer.app'
@@ -13,7 +22,7 @@ export async function main(): Promise<void> {
   } catch (e) {
     // Fail the workflow run if an error occurs
     if (e instanceof Error) {
-      core.setFailed(e.message)
+      setFailed(e.message)
     }
   }
 }
@@ -28,7 +37,7 @@ export async function post(): Promise<void> {
     // if it fails, there's not much we can do
     // the token will expire in 1 hour if not revoked
     if (e instanceof Error) {
-      core.warning(`Error while revoking token: ${e.message}`)
+      warning(`Error while revoking token: ${e.message}`)
     }
   }
 }
@@ -40,7 +49,7 @@ const issueToken = async () => {
     )
   }
   const targetRepositories = parseRepositories(
-    core.getInput('target-repository', {
+    getInput('target-repository', {
       required: true,
       trimWhitespace: true
     })
@@ -51,7 +60,7 @@ const issueToken = async () => {
     )
   }
   const permissions = parsePermissions(
-    core.getInput('permissions', { required: true, trimWhitespace: true })
+    getInput('permissions', { required: true, trimWhitespace: true })
   )
   if (Object.entries(permissions).length === 0) {
     throw new Error(
@@ -59,14 +68,14 @@ const issueToken = async () => {
     )
   }
   const revokeToken = toBoolean(
-    core.getInput('revoke-token', {
+    getInput('revoke-token', {
       required: false,
       trimWhitespace: true
     }) || 'true'
   )
 
   const permissionizerServer =
-    core.getInput('permissionizer-server', {
+    getInput('permissionizer-server', {
       required: false,
       trimWhitespace: true
     }) || PERMISSIONIZER_SERVER
@@ -76,31 +85,31 @@ const issueToken = async () => {
     )
   }
 
-  core.info('Issuing ID Token from GitHub API')
-  const idToken = await core.getIDToken(
+  info('Issuing ID Token from GitHub API')
+  const idToken = await getIDToken(
     `permissionizer-server (${permissionizerServer})`
   )
 
   // make sure that the idToken is always masked if accidentally logged
-  core.setSecret(idToken)
+  setSecret(idToken)
 
-  core.info(`Requesting a scoped token from ${permissionizerServer}`)
-  const client = new Client({ baseUrl: permissionizerServer, idToken })
+  info(`Requesting a scoped token from ${permissionizerServer}`)
+  const client = new Client({ baseUrl: permissionizerServer, token: idToken })
   const response = await client.getToken(targetRepositories, permissions)
 
-  core.setSecret(response.token)
+  setSecret(response.token)
 
-  core.setOutput('token', response.token)
-  core.setOutput('issued-by', response.issued_by)
-  core.setOutput('expires-at', response.expires_at)
-  core.setOutput('repositories', response.repositories)
-  core.setOutput('permissions', response.permissions)
+  setOutput('token', response.token)
+  setOutput('issued-by', response.issued_by)
+  setOutput('expires-at', response.expires_at)
+  setOutput('repositories', response.repositories)
+  setOutput('permissions', response.permissions)
 
   if (revokeToken) {
-    core.saveState('token', response.token)
+    saveState('token', response.token)
   }
 
-  core.info(
+  info(
     `Token was successfully requested and was set as an output 'token'. Expires at: ${response.expires_at}`
   )
 }
@@ -244,10 +253,13 @@ const toBoolean = (input: string): boolean => {
 }
 
 const revokeToken = async () => {
-  const token = core.getState('token')
+  const token = getState('token')
   if (token) {
-    core.info('Revoking token')
-    const octokit = github.getOctokit(token)
-    await octokit.rest.apps.revokeInstallationAccessToken()
+    info('Revoking token')
+    const client = new Client({
+      baseUrl: process.env.GITHUB_API_URL || 'https://api.github.com',
+      token
+    })
+    await client.revokeToken()
   }
 }
