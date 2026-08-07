@@ -2,6 +2,7 @@
 
 import commonjs from '@rollup/plugin-commonjs'
 import nodeResolve from '@rollup/plugin-node-resolve'
+import terser from '@rollup/plugin-terser'
 import typescript from '@rollup/plugin-typescript'
 
 export default [
@@ -16,7 +17,8 @@ export default [
     plugins: [
       typescript(),
       nodeResolve({ preferBuiltins: true, extensions: ['.js', '.ts'] }),
-      commonjs()
+      commonjs(),
+      terser()
     ]
   },
   {
@@ -30,7 +32,8 @@ export default [
     plugins: [
       typescript(),
       nodeResolve({ preferBuiltins: true, extensions: ['.js', '.ts'] }),
-      commonjs()
+      commonjs(),
+      terser()
     ]
   }
 ]

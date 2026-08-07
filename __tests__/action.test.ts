@@ -1,11 +1,10 @@
 import { jest } from '@jest/globals'
 import * as core from '../__fixtures__/core.js'
-import * as github from '../__fixtures__/github.js'
-import * as HttpClient from '../__fixtures__/http-client.js'
 
 jest.unstable_mockModule('@actions/core', () => core)
-jest.unstable_mockModule('@actions/github', () => github)
-jest.unstable_mockModule('@actions/http-client', () => HttpClient)
+
+const fetchMock = jest.fn<typeof fetch>()
+global.fetch = fetchMock
 
 const inputs = {
   'target-repository': jest.fn<string>(),
@@ -14,7 +13,32 @@ const inputs = {
   'revoke-token': jest.fn<string>()
 }
 
-const revokeInstallationAccessToken = jest.fn()
+const tokenResponse = {
+  token: 'test-token',
+  expires_at: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+  permissions: {
+    metadata: 'read',
+    contents: 'read',
+    issues: 'write'
+  },
+  repositories: ['owner/repo1', 'owner/repo2'],
+  issued_by: {
+    repository: 'owner/repo1',
+    ref: 'refs/heads/main',
+    workflow_ref: 'owner/repo1/.github/workflows/ci.yaml@refs/heads/main',
+    run_id: 123456789
+  }
+}
+
+const expectTokenRequest = (url: string, body: unknown) => {
+  expect(fetchMock).toHaveBeenCalledWith(
+    url,
+    expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
+  )
+}
 
 const { main, post } = await import('../src/action.js')
 
@@ -44,40 +68,14 @@ describe('main.ts', () => {
     core.saveState.mockImplementation((key, value) => (state[key] = value))
     core.getState.mockImplementation((key) => state[key])
 
-    HttpClient.postJson.mockImplementation(() => {
-      return {
-        statusCode: 200,
-        result: {
-          token: 'test-token',
-          expires_at: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
-          permissions: {
-            metadata: 'read',
-            contents: 'read',
-            issues: 'write'
-          },
-          repositories: ['owner/repo1', 'owner/repo2'],
-          issued_by: {
-            repository: 'owner/repo1',
-            ref: 'refs/heads/main',
-            workflow_ref:
-              'owner/repo1/.github/workflows/ci.yaml@refs/heads/main',
-            run_id: 123456789
-          }
-        }
+    fetchMock.mockImplementation(async (_input, init) => {
+      if (init?.method === 'DELETE') {
+        return new Response(null, { status: 204 })
       }
+      return new Response(JSON.stringify(tokenResponse), { status: 200 })
     })
 
     process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://github.com'
-
-    github.getOctokit.mockImplementation(() => {
-      return {
-        rest: {
-          apps: {
-            revokeInstallationAccessToken
-          }
-        }
-      }
-    })
   })
 
   afterEach(() => {
@@ -89,16 +87,13 @@ describe('main.ts', () => {
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(
-      'https://permissionizer.app/v1/token',
-      {
-        target_repositories: ['owner/repo1', 'owner/repo2'],
-        permissions: {
-          contents: 'read',
-          issues: 'write'
-        }
+    expectTokenRequest('https://permissionizer.app/v1/token', {
+      target_repositories: ['owner/repo1', 'owner/repo2'],
+      permissions: {
+        contents: 'read',
+        issues: 'write'
       }
-    )
+    })
 
     expect(core.setSecret).toHaveBeenCalledWith('test-token')
     expect(core.setOutput).toHaveBeenCalledWith('token', 'test-token')
@@ -143,7 +138,7 @@ describe('main.ts', () => {
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(expect.anything(), {
+    expectTokenRequest('https://permissionizer.app/v1/token', {
       target_repositories: ['owner/repo1', 'owner/repo2'],
       permissions: {
         contents: 'read',
@@ -161,7 +156,7 @@ describe('main.ts', () => {
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(expect.anything(), {
+    expectTokenRequest('https://permissionizer.app/v1/token', {
       target_repositories: ['owner/repo1', 'owner/repo2'],
       permissions: {
         contents: 'read',
@@ -177,7 +172,7 @@ describe('main.ts', () => {
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(expect.anything(), {
+    expectTokenRequest('https://permissionizer.app/v1/token', {
       target_repositories: ['owner/repo1'],
       permissions: {
         contents: 'read',
@@ -233,7 +228,7 @@ describe('main.ts', () => {
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(expect.anything(), {
+    expectTokenRequest('https://permissionizer.app/v1/token', {
       target_repositories: ['owner/repo1', 'owner/repo2'],
       permissions: {
         actions: 'read',
@@ -259,7 +254,7 @@ describe('main.ts', () => {
 
     expect(core.setFailed).not.toHaveBeenCalled()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(expect.anything(), {
+    expectTokenRequest('https://permissionizer.app/v1/token', {
       target_repositories: ['owner/repo1', 'owner/repo2'],
       permissions: {
         actions: 'read',
@@ -337,7 +332,7 @@ describe('main.ts', () => {
   it('Uses default permissionizer-server URL if empty', async () => {
     await main()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledWith(
       'https://permissionizer.app/v1/token',
       expect.anything()
     )
@@ -349,25 +344,26 @@ describe('main.ts', () => {
     )
     await main()
 
-    expect(HttpClient.postJson).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledWith(
       'https://custom-permissionizer.com/v1/token',
       expect.anything()
     )
   })
 
   it('Propagates error from Permissionizer Server', async () => {
-    HttpClient.postJson.mockImplementation(() => {
-      return {
-        statusCode: 403,
-        result: {
-          detail:
-            "The target repository 'owner/repo1' does not allow 'owner/requestor' to access it. Please reach out to the repository owner to allow access",
-          properties: {
-            request_id: '123'
-          }
-        }
-      }
-    })
+    fetchMock.mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            detail:
+              "The target repository 'owner/repo1' does not allow 'owner/requestor' to access it. Please reach out to the repository owner to allow access",
+            properties: {
+              request_id: '123'
+            }
+          }),
+          { status: 403 }
+        )
+    )
 
     await main()
 
@@ -380,8 +376,10 @@ describe('main.ts', () => {
     await main()
     await post()
 
-    expect(github.getOctokit).toHaveBeenCalledWith('test-token')
-    expect(revokeInstallationAccessToken).toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'https://api.github.com/installation/token',
+      expect.objectContaining({ method: 'DELETE' })
+    )
   })
 
   it('Does not save state if token does not need to be revoked', async () => {
@@ -392,16 +390,12 @@ describe('main.ts', () => {
 
     expect(core.setOutput).toHaveBeenCalledWith('token', 'test-token')
     expect(core.saveState).not.toHaveBeenCalled()
-    expect(github.getOctokit).not.toHaveBeenCalled()
-    expect(revokeInstallationAccessToken).not.toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('Propagates error from token revocation', async () => {
-    revokeInstallationAccessToken.mockImplementation(() => {
-      throw new Error("Can't revoke token")
-    })
-
     await main()
+    fetchMock.mockRejectedValueOnce(new Error("Can't revoke token"))
     await post()
 
     expect(core.warning).toHaveBeenCalledWith(
