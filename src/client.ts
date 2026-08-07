@@ -53,7 +53,7 @@ export class Client {
           requestBody
         )
       } catch (e) {
-        throw new Error(`Error fetching token: ${e}`)
+        throw new Error(`Error fetching token: ${e}`, { cause: e })
       }
 
       if (response.statusCode && response.statusCode >= 400) {
