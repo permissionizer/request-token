@@ -5,7 +5,7 @@ import {
   IssueTokenResponse,
   PermissionizerErrorResponse
 } from './types'
-import * as ifm from '@actions/http-client/lib/interfaces.js'
+import type * as ifm from '@actions/http-client/lib/interfaces'
 import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 
 /**
