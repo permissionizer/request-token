@@ -63,10 +63,6 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v7
-
       - name: Set pending status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,7 +74,7 @@ jobs:
 
       - name: Test Local Action
         id: request-token
-        uses: ./
+        uses: $/
         with:
           target-repository: ${{ github.repository }}
           permissions: |
